@@ -10,5 +10,7 @@ searcher = Searcher()
 def search():
 
     searcher_input = Input(request.args)
-    products = searcher.search(lat=lat, lng=lng, radius=radius, count=count, tags=tags)
+    if searcher_input.input_errors:
+        return jsonify({'errors': searcher_input.input_errors}) , 400
+    products = searcher.search(searcher_input)
     return jsonify({'products': products})

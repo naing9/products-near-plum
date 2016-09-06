@@ -172,6 +172,7 @@
           cb(null, response.products);
         },
         error: function(err){
+          console.log(err);
           alert(err);
         }
       });

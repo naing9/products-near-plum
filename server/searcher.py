@@ -3,6 +3,7 @@ from haversine import haversine
 
 import csv
 
+# This is predetermined by analyzing locations of shops.
 LAT_START = 59.166
 LAT_INC = 0.01799
 LAT_COUNT = 18
@@ -10,6 +11,7 @@ LNG_START = 17.866
 LNG_INC = 0.0351
 LNG_COUNT = 10
 
+# Change lat and lng to grid coordinates
 def _map_grid(lat, lng):
     x = (lat - LAT_START) / LAT_INC
     y = (lng - LNG_START) / LNG_INC
@@ -35,7 +37,8 @@ class Input:
         except ValueError:
             self.input_errors.append('One or more of the inputs is not a number')
             return
-        self.tags = tags.split(',')
+        #Split the tags and filter out empty strings
+        self.tags = filter(bool,_tags.split(','))
 
         if self.lat < -90 or self.lat > 90:
             self.input_errors.append('lat must be between -90 and 90')
@@ -101,7 +104,7 @@ class Searcher:
                             'popularity' : popularity,
                             'quantity' : quantity
                         }
-                        self.grid[i][j].append(p)
+                        self.grid[i][j].append(product)
 
     #Loads tags and assign tags to shops
     def _load_tags(self, tags_file, taggings_file):
@@ -126,23 +129,23 @@ class Searcher:
     def setup(self, data_path):
         #Read and load from shops.csv
         shops_file = u"%s/%s" % (data_path, 'shops.csv')
-        _load_shops(shops_file)
+        self._load_shops(shops_file)
 
 
         #Read and load from tags.csv and taggings.csv
         tags_file = u"%s/%s" % (data_path, 'tags.csv')
         taggings_file = u"%s/%s" % (data_path, 'taggings.csv')
-        _load_tags(tags_file, taggings_file)
+        self._load_tags(tags_file, taggings_file)
 
 
         #Read and load from products.csv
         products_file = u"%s/%s" % (data_path, 'products.csv')
-        _load_products(products_file)
+        self._load_products(products_file)
 
         # Pre-sort all the grid squares
         for x in range(LAT_COUNT):
             for y in range(LNG_COUNT):
-                self.grid[x][y].sort(key=lambda i: i[3], reverse=True)
+                self.grid[x][y].sort(key=lambda i: i['popularity'], reverse=True)
 
 
     # Return search results of products near you.
@@ -154,12 +157,12 @@ class Searcher:
         count = ins.count
         tags = ins.tags
         res = []
+        print(lat, lng, radius, count, tags)
 
         loc = _map_grid(lat, lng)
         # If not loc, out of bounds, return no results
         if loc:
             for item in self.grid[loc[0]][loc[1]]:
-
                 # break when got desired results
                 if len(res) >= count:
                     break
@@ -171,10 +174,13 @@ class Searcher:
                 # Check if tags match
                 dist = haversine((lat,lng), (shop['lat'], shop['lng'])) * 1000
                 tagged = False
-
+                print(dist, radius)
                 if dist <= radius:
+                    print('yay')
+                    print(len(tags))
+                    print(tags)
                     # TODO : change it to bitset
-                    if tags:
+                    if len(tags) > 0 :
                         for tag in tags:
                             if tag in shop['tags']:
                                 tagged = True

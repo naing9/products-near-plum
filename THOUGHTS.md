@@ -94,7 +94,8 @@ Again, this will also change when we are using database.
 
 AFTERTOUGHTS
 I went with the design mentioned above. It worked very well. Average query takes 13 sec in my local server. Load test with 10,000 requests took 130 seconds to complete and did not break the server. 1000 concurrent requests will take 13 seconds. This might be acceptable during high bursts. We should show an alert saying that we are experience high load in the front end in this case. But again, we are not using threading, caching and also load balancing. 
-We are using a presorted localized search as the alogrithm and putting them in memory. This is not scalable at all and might be overkill. (Need to compare with a traditional database approach to compare performance)
+We are using a presorted localized search as the alogrithm and putting them in memory. This is not scalable at all and might be overkill. (Need to compare with a traditional database approach to compare performance). Also, the algorithm works faster the bigger the radius. It works slower if the radius is smaller since our search space is still the same but criteria is stricter. 
+We need to know what is the actual usecase for this API is? Are most of the customers gonna have strict searching criteria if so, we need to rethink the algorithm. Or maybe we can switch algorithms based on the searching criteria.
 
 ==TODO==
 - add comments, documentation
